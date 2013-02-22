@@ -1,3 +1,4 @@
+// vim: set noexpandtab tabstop=4 nolist :
 //-----------------------------------------------------------------------------
 //
 //	Driver.cpp
@@ -66,7 +67,7 @@ using namespace OpenZWave;
 //
 uint32 const c_configVersion = 3;
 
-static char const* c_libraryTypeNames[] = 
+static char const* c_libraryTypeNames[] =
 {
 	"Unknown",			// library type 0
 	"Static Controller",		// library type 1
@@ -93,7 +94,7 @@ static char const* c_transmitStatusNames[] =
 // Constructor
 //-----------------------------------------------------------------------------
 Driver::Driver
-( 
+(
 	string const& _controllerPath,
 	ControllerInterface const& _interface
 ):
@@ -163,7 +164,7 @@ Driver::Driver
 
 	// Clear the nodes array
 	memset( m_nodes, 0, sizeof(Node*) * 256 );
-    
+
 	// Clear the virtual neighbors array
 	memset( m_virtualNeighbors, 0, NUM_NODE_BITFIELD_BYTES );
 
@@ -251,7 +252,7 @@ Driver::~Driver
 			m_nodes[i] = NULL;
 			Notification* notification = new Notification( Notification::Type_NodeRemoved );
 			notification->SetHomeAndNodeIds( m_homeId, i );
-			QueueNotification( notification ); 
+			QueueNotification( notification );
 		}
 	}
 	ReleaseNodes();
@@ -259,7 +260,7 @@ Driver::~Driver
 	NotifyWatchers();
 	m_notificationsEvent->Release();
 	m_nodeMutex->Release();
-    
+
 	// Unsure at what point this is safe to do?
 	delete m_controllerReplication;
 }
@@ -281,9 +282,9 @@ void Driver::Start
 // Entry point of the thread for creating and managing the worker threads
 //-----------------------------------------------------------------------------
 void Driver::DriverThreadEntryPoint
-( 
+(
 	Event* _exitEvent,
-	void* _context 
+	void* _context
 )
 {
 	Driver* driver = (Driver*)_context;
@@ -298,7 +299,7 @@ void Driver::DriverThreadEntryPoint
 // Create and manage the worker threads
 //-----------------------------------------------------------------------------
 void Driver::DriverThreadProc
-( 
+(
 	Event* _exitEvent
 )
 {
@@ -344,7 +345,7 @@ void Driver::DriverThreadProc
 				int32 res = Wait::Multiple( waitObjects, count, timeout );
 				switch( res )
 				{
-					case -1:	
+					case -1:
 					{
 						// Wait has timed out - time to resend
 						if( WriteMsg( "Wait Timeout" ) )
@@ -361,7 +362,7 @@ void Driver::DriverThreadProc
 					case 1:
 					{
 						// Notifications are waiting to be sent
-						NotifyWatchers();			
+						NotifyWatchers();
 						break;
 					}
 					case 2:
@@ -384,7 +385,7 @@ void Driver::DriverThreadProc
 		}
 
 		++attempts;
-		
+
 		uint32 maxAttempts = 0;
 		Options::Get()->GetOptionAsInt("DriverMaxAttempts", (int32 *)&maxAttempts);
 		if( maxAttempts && (attempts >= maxAttempts) )
@@ -393,7 +394,7 @@ void Driver::DriverThreadProc
 			NotifyWatchers();
 			break;
 		}
-			
+
 		if( attempts < 25 )
 		{
 			// Retry every 5 seconds for the first two minutes
@@ -443,7 +444,7 @@ bool Driver::Init
 	// Send a NAK to the ZWave device
 	uint8 nak = NAK;
 	m_controller->Write( &nak, 1 );
- 
+
 	// Get/set ZWave controller information in its preferred initialization order
 	m_controller->PlayInitSequence( this );
 
@@ -451,7 +452,7 @@ bool Driver::Init
 	//Msg* msg = new Msg( "FUNC_ID_ZW_SET_PROMISCUOUS_MODE", 0xff, REQUEST, FUNC_ID_ZW_SET_PROMISCUOUS_MODE, false, false );
 	//msg->Append( 0xff );
 	//SendMsg( msg );
-	
+
 	// Init successful
 	return true;
 }
@@ -474,7 +475,7 @@ bool Driver::ReadConfig
 	// Load the XML document that contains the driver configuration
 	string userPath;
 	Options::Get()->GetOptionAsString( "UserPath", &userPath );
-	
+
 	snprintf( str, sizeof(str), "zwcfg_0x%08x.xml", m_homeId );
 	string filename =  userPath + string(str);
 
@@ -492,7 +493,7 @@ bool Driver::ReadConfig
 		Log::Write( LogLevel_Warning, "WARNING: Driver::ReadConfig - %s is from an older version of OpenZWave and cannot be loaded.", filename.c_str() );
 		return false;
 	}
-	
+
 	// Home ID
 	char const* homeIdStr = driverElement->Attribute( "home_id" );
 	if( homeIdStr )
@@ -567,7 +568,7 @@ bool Driver::ReadConfig
 
 				Notification* notification = new Notification( Notification::Type_NodeAdded );
 				notification->SetHomeAndNodeIds( m_homeId, nodeId );
-				QueueNotification( notification ); 
+				QueueNotification( notification );
 
 				// Read the rest of the node configuration from the XML
 				node->ReadXML( nodeElement );
@@ -576,7 +577,7 @@ bool Driver::ReadConfig
 
 		nodeElement = nodeElement->NextSiblingElement();
 	}
-	
+
 	ReleaseNodes();
 
 	// restore the previous state (for now, polling) for the nodes/values just retrieved
@@ -611,13 +612,13 @@ void Driver::WriteConfig
 		Log::Write( LogLevel_Warning, "WARNING: Tried to write driver config with no home ID set");
 		return;
 	}
-	
+
 	// Create a new XML document to contain the driver configuration
 	TiXmlDocument doc;
 	TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "utf-8", "" );
 	TiXmlElement* driverElement = new TiXmlElement( "Driver" );
 	doc.LinkEndChild( decl );
-	doc.LinkEndChild( driverElement );  
+	doc.LinkEndChild( driverElement );
 
 	driverElement->SetAttribute( "xmlns", "http://code.google.com/p/open-zwave/" );
 
@@ -732,10 +733,10 @@ void Driver::ReleaseNodes
 // Queue an item on the query queue that indicates a stage is complete
 //-----------------------------------------------------------------------------
 void Driver::SendQueryStageComplete
-( 
+(
 	uint8 const _nodeId,
 	Node::QueryStage const _stage,
-	MsgQueue const _queue 
+	MsgQueue const _queue
 )
 {
 	MsgQueueItem item;
@@ -761,7 +762,7 @@ void Driver::SendQueryStageComplete
 			}
 		}
 
-		// Non-sleeping node 
+		// Non-sleeping node
 		Log::Write( LogLevel_Detail, node->GetNodeId(), "Queuing Command: Query Stage Complete (%s)", node->GetQueryStageName( _stage ).c_str() );
 		m_sendMutex->Lock();
 		m_msgQueue[MsgQueue_Query].push_back( item );
@@ -777,9 +778,9 @@ void Driver::SendQueryStageComplete
 // Queue a message to be sent to the Z-Wave PC Interface
 //-----------------------------------------------------------------------------
 void Driver::SendMsg
-( 
+(
 	Msg* _msg,
-	MsgQueue const _queue 
+	MsgQueue const _queue
 )
 {
 	_msg->Finalize();
@@ -822,16 +823,16 @@ void Driver::SendMsg
 //-----------------------------------------------------------------------------
 bool Driver::WriteNextMsg
 (
-	MsgQueue const _queue 
+	MsgQueue const _queue
 )
 {
 	// There are messages to send, so get the one at the front of the queue
 	m_sendMutex->Lock();
 	MsgQueueItem item = m_msgQueue[_queue].front();
-	
+
 	if( MsgQueueCmd_SendMsg == item.m_command )
 	{
-		// Send a message 
+		// Send a message
 		m_currentMsg = item.m_msg;
 		m_msgQueue[_queue].pop_front();
 		if( m_msgQueue[_queue].empty() )
@@ -841,7 +842,7 @@ bool Driver::WriteNextMsg
 		m_sendMutex->Unlock();
 		return WriteMsg( "WriteNextMsg" );
 	}
-	
+
 	if( MsgQueueCmd_QueryStageComplete == item.m_command )
 	{
 		// Move to the next query stage
@@ -856,7 +857,7 @@ bool Driver::WriteNextMsg
 
 		Node* node = GetNodeUnsafe( item.m_nodeId );
 		if( node != NULL )
-		{	
+		{
 			Log::Write( LogLevel_Detail, node->GetNodeId(), "Query Stage Complete (%s)", node->GetQueryStageName( stage ).c_str() );
 			node->QueryStageComplete( stage );
 			node->AdvanceQueries();
@@ -989,7 +990,7 @@ bool Driver::MoveMessagesToWakeUpQueue
 				// Mark the node as asleep
 				wakeUp->SetAwake( false );
 
-				// Move all messages for this node to the wake-up queue									
+				// Move all messages for this node to the wake-up queue
 				m_sendMutex->Lock();
 
 				// Try the current message first
@@ -1077,7 +1078,7 @@ bool Driver::MoveMessagesToWakeUpQueue
 				}
 
 				m_sendMutex->Unlock();
-				
+
 				// Move completed successfully
 				return true;
 			}
@@ -1124,19 +1125,19 @@ void Driver::CheckCompletedNodeQueries
 			Log::Write( LogLevel_Info, "         Node query processing complete." );
 			Notification* notification = new Notification( Notification::Type_AllNodesQueried );
 			notification->SetHomeAndNodeIds( m_homeId, 0xff );
-			QueueNotification( notification ); 
+			QueueNotification( notification );
 			m_awakeNodesQueried = true;
 			m_allNodesQueried = true;
 		}
 		else if( sleepingOnly )
 		{
-			if (!m_awakeNodesQueried ) 
+			if (!m_awakeNodesQueried )
 			{
 				// only sleeping nodes remain, so signal awake nodes queried complete
 				Log::Write( LogLevel_Info, "         Node query processing complete except for sleeping nodes." );
 				Notification* notification = new Notification( Notification::Type_AwakeNodesQueried );
 				notification->SetHomeAndNodeIds( m_homeId, 0xff );
-				QueueNotification( notification ); 
+				QueueNotification( notification );
 				m_awakeNodesQueried = true;
 			}
 		}
@@ -1262,7 +1263,7 @@ bool Driver::ReadMsg
 				m_controller->SetSignalThreshold( 1 );
 				break;
 			}
-			
+
 			m_controller->Read( &buffer[2], buffer[1] );
 			m_controller->SetSignalThreshold( 1 );
 
@@ -1270,13 +1271,13 @@ bool Driver::ReadMsg
 
 			// Log the data
 			string str = "";
-			for( uint32 i=0; i<length; ++i ) 
+			for( uint32 i=0; i<length; ++i )
 			{
 				if( i )
 				{
 					str += ", ";
 				}
-			
+
 				char byteStr[8];
 				snprintf( byteStr, sizeof(byteStr), "0x%.2x", buffer[i] );
 				str += byteStr;
@@ -1290,18 +1291,18 @@ bool Driver::ReadMsg
 
 			// Verify checksum
 			uint8 checksum = 0xff;
-			for( uint32 i=1; i<(length-1); ++i ) 
+			for( uint32 i=1; i<(length-1); ++i )
 			{
 				checksum ^= buffer[i];
 			}
-			
+
 			if( buffer[length-1] == checksum )
 			{
 				// Checksum correct - send ACK
 				uint8 ack = ACK;
 				m_controller->Write( &ack, 1 );
 				m_readCnt++;
-			
+
 				// Process the received message
 				ProcessMsg( &buffer[2] );
 			}
@@ -1315,7 +1316,7 @@ bool Driver::ReadMsg
 			}
 			break;
 		}
-			
+
 		case CAN:
 		{
 			// This is the other side of an unsolicited ACK. As mentioned there if we receive a message
@@ -1336,7 +1337,7 @@ bool Driver::ReadMsg
 			WriteMsg( "CAN" );
 			break;
 		}
-		
+
 		case NAK:
 		{
 			Log::Write( LogLevel_Warning, GetNodeNumber( m_currentMsg ), "WARNING: NAK received...triggering resend" );
@@ -1348,7 +1349,7 @@ bool Driver::ReadMsg
 		case ACK:
 		{
 			m_ACKCnt++;
-			m_waitingForAck = false;		
+			m_waitingForAck = false;
 			if( m_currentMsg == NULL )
 			{
 				Log::Write( LogLevel_Detail, 255, "  ACK received" );
@@ -1364,7 +1365,7 @@ bool Driver::ReadMsg
 			}
 			break;
 		}
-		
+
 		default:
 		{
 			Log::Write( LogLevel_Warning, "WARNING: Out of frame flow! (0x%.2x).  Sending NAK.", buffer[0] );
@@ -1618,7 +1619,7 @@ void Driver::ProcessMsg
 				break;
 			}
 		}
-	} 
+	}
 	else if( REQUEST == _data[0] )
 	{
 		switch( _data[1] )
@@ -1747,7 +1748,7 @@ void Driver::ProcessMsg
 			default:
 			{
 				break;
-			}	
+			}
 		}
 	}
 
@@ -1784,7 +1785,7 @@ void Driver::ProcessMsg
 					else
 					{
 						if( IsExpectedReply( _data[3] ) )
-					  
+
 						{
 							Log::Write( LogLevel_Detail, GetNodeNumber( m_currentMsg ), "  Expected reply was received" );
 							m_expectedReply = 0;
@@ -1805,7 +1806,7 @@ void Driver::ProcessMsg
 				{
 					Notification* notification = new Notification( Notification::Type_MsgComplete );
 					notification->SetHomeAndNodeIds( m_homeId, 0xff );
-					QueueNotification( notification ); 
+					QueueNotification( notification );
 				}
 			}
 		}
@@ -1822,7 +1823,7 @@ void Driver::HandleGetVersionResponse
 )
 {
 	m_libraryVersion = (char*)&_data[2];
-	
+
 	m_libraryType = _data[m_libraryVersion.size()+3];
 	if( m_libraryType < 9 )
 	{
@@ -1871,7 +1872,7 @@ void Driver::HandleGetControllerCapabilitiesResponse
 	else
 	{
 		Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "    There is no SUC ID Server (SIS) in this network." );
-		snprintf( str, sizeof(str), "    The PC controller is a %s%s%s", 
+		snprintf( str, sizeof(str), "    The PC controller is a %s%s%s",
 			  ( m_controllerCaps & ControllerCaps_Secondary ) ? "secondary" : "primary",
 			  ( m_controllerCaps & ControllerCaps_SUC ) ? " static update controller (SUC)" : " controller",
 			  ( m_controllerCaps & ControllerCaps_OnOtherNetwork ) ? " which is using a Home ID from another network." : "." );
@@ -1894,7 +1895,7 @@ void Driver::HandleGetSerialAPICapabilitiesResponse
 	Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "    Product Type:         0x%.2x%.2x", _data[6], _data[7] );
 	Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "    Product ID:           0x%.2x%.2x", _data[8], _data[9] );
 
-	// _data[10] to _data[41] are a 256-bit bitmask with one bit set for 
+	// _data[10] to _data[41] are a 256-bit bitmask with one bit set for
 	// each FUNC_ID_ method supported by the controller.
 	// Bit 0 is FUNC_ID_ 1.  So FUNC_ID_SERIAL_API_GET_CAPABILITIES (0x07) will be bit 6 of the first byte.
 	m_manufacturerId = (((uint16)_data[4])<<8) | (uint16)_data[5];
@@ -1968,7 +1969,7 @@ bool Driver::HandleNetworkUpdateResponse
 	{
 		m_controllerCallback( state, m_controllerCallbackContext );
 	}
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -1998,20 +1999,20 @@ void Driver::HandleGetSUCNodeIdResponse
 	if( _data[2] == 0)
 	{
 //		Log::Write( LogLevel_Info, "  No SUC, so we become SUC" );
-		
+
 //		Msg* msg;
 //		msg = new Msg( "Enable SUC", m_nodeId, REQUEST, FUNC_ID_ZW_ENABLE_SUC, false );
-//		msg->Append( 1 );	
+//		msg->Append( 1 );
 //		msg->Append( SUC_FUNC_BASIC_SUC );			// SUC
 //		msg->Append( SUC_FUNC_NODEID_SERVER );		// SIS
-//		SendMsg( msg, MsgQueue_Send ); 
+//		SendMsg( msg, MsgQueue_Send );
 
 //		msg = new Msg( "Set SUC node ID", m_nodeId, REQUEST, FUNC_ID_ZW_SET_SUC_NODE_ID, false );
 //		msg->Append( m_nodeId );
 //		msg->Append( 1 );								// TRUE, we want to be SUC/SIS
 //		msg->Append( 0 );								// no low power
 //		msg->Append( SUC_FUNC_NODEID_SERVER );
-//		SendMsg( msg, MsgQueue_Send ); 
+//		SendMsg( msg, MsgQueue_Send );
 	}
 }
 
@@ -2043,7 +2044,7 @@ void Driver::HandleSerialAPIGetInitDataResponse
 
 	if( !m_init )
 	{
-		// Mark the driver as ready (we have to do this first or 
+		// Mark the driver as ready (we have to do this first or
 		// all the code handling notifications will go awry).
 		Manager::Get()->SetDriverReady( this, true );
 
@@ -2063,7 +2064,7 @@ void Driver::HandleSerialAPIGetInitDataResponse
 			{
 				uint8 nodeId = (i*8)+j+1;
 				if( _data[i+5] & (0x01 << j) )
-				{					
+				{
 					if( IsVirtualNode( nodeId ) )
 					{
 						Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "    Node %.3d - Virtual (ignored)", nodeId );
@@ -2076,7 +2077,7 @@ void Driver::HandleSerialAPIGetInitDataResponse
 							Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "    Node %.3d - Known", nodeId );
 							if( !m_init )
 							{
-								// The node was read in from the config, so we 
+								// The node was read in from the config, so we
 								// only need to get its current state
 								node->SetQueryStage( Node::QueryStage_Associations );
 							}
@@ -2089,7 +2090,7 @@ void Driver::HandleSerialAPIGetInitDataResponse
 							Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "    Node %.3d - New", nodeId );
 							Notification* notification = new Notification( Notification::Type_NodeNew );
 							notification->SetHomeAndNodeIds( m_homeId, nodeId );
-							QueueNotification( notification ); 
+							QueueNotification( notification );
 
 							// Create the node and request its info
 							InitNode( nodeId );
@@ -2106,7 +2107,7 @@ void Driver::HandleSerialAPIGetInitDataResponse
 						m_nodes[nodeId] = NULL;
 						Notification* notification = new Notification( Notification::Type_NodeRemoved );
 						notification->SetHomeAndNodeIds( m_homeId, nodeId );
-						QueueNotification( notification ); 
+						QueueNotification( notification );
 
 						ReleaseNodes();
 					}
@@ -2173,7 +2174,7 @@ bool Driver::HandleAssignReturnRouteResponse
 	{
 		m_controllerCallback( state, m_controllerCallbackContext );
 	}
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -2204,7 +2205,7 @@ bool Driver::HandleDeleteReturnRouteResponse
 	{
 		m_controllerCallback( state, m_controllerCallbackContext );
 	}
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -2259,7 +2260,7 @@ bool Driver::HandleRemoveFailedNodeResponse
 	{
 		m_controllerCallback( state, m_controllerCallbackContext );
 	}
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -2366,7 +2367,7 @@ void Driver::HandleGetRoutingInfoResponse
 				}
 			}
 		}
-		
+
 		if( !bNeighbors )
 		{
 			Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), " (none reported)" );
@@ -2395,7 +2396,7 @@ void Driver::HandleSendDataRequest
 		else
 			Log::Write( LogLevel_Warning, nodeId, "WARNING: Unexpected Callback ID received (received 0x%.2x, expected 0x%.2x, lastid was 0x%.2x)",_data[2], m_expectedCallbackId, Msg::GetLastCallbackId() );
 	}
-	else 
+	else
 	{
 		// Callback ID matches our expectation
 		if( ( _data[3] & TRANSMIT_COMPLETE_NOROUTE ) != 0 )
@@ -2410,7 +2411,7 @@ void Driver::HandleSendDataRequest
 			{
 				if( !_replication )
 				{
-					// In case the failure is due to the target being a sleeping node, we 
+					// In case the failure is due to the target being a sleeping node, we
 					// first try to move its pending messages to its wake-up queue.
 					if( MoveMessagesToWakeUpQueue( m_currentMsg->GetTargetNodeId() ) )
 					{
@@ -2508,8 +2509,8 @@ void Driver::HandleRemoveNodeFromNetworkRequest
 {
 	uint8 nodeId = GetNodeNumber( m_currentMsg );
 	Log::Write( LogLevel_Info, nodeId, "FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK:" );
-	
-	switch( _data[3] ) 
+
+	switch( _data[3] )
 	{
 		case REMOVE_NODE_STATUS_LEARN_READY:
 		{
@@ -2589,7 +2590,7 @@ void Driver::HandleRemoveNodeFromNetworkRequest
 		case REMOVE_NODE_STATUS_DONE:
 		{
 			Log::Write( LogLevel_Info, nodeId, "REMOVE_NODE_STATUS_DONE" );
-			
+
 			if ( m_controllerCommandNode == 0 ) // never received "removing" update
 			{
 				if ( _data[4] != 0 ) // but message has the clue
@@ -2605,7 +2606,7 @@ void Driver::HandleRemoveNodeFromNetworkRequest
 
 				Notification* notification = new Notification( Notification::Type_NodeRemoved );
 				notification->SetHomeAndNodeIds( m_homeId, m_controllerCommandNode );
-				QueueNotification( notification ); 
+				QueueNotification( notification );
 			}
 
 			m_controllerCommand = ControllerCommand_None;
@@ -2669,8 +2670,8 @@ void Driver::HandleSetLearnModeRequest
 {
 	uint8 nodeId = GetNodeNumber( m_currentMsg );
 	Log::Write( LogLevel_Info, nodeId, "FUNC_ID_ZW_SET_LEARN_MODE:" );
-	
-	switch( _data[3] ) 
+
+	switch( _data[3] )
 	{
 		case LEARN_MODE_STARTED:
 		{
@@ -2695,7 +2696,7 @@ void Driver::HandleSetLearnModeRequest
 			msg->Append( 0 );
 			SendMsg( msg, MsgQueue_Command );
 
-			// Rebuild all the node info.  Group and scene data that we stored 
+			// Rebuild all the node info.  Group and scene data that we stored
 			// during replication will be applied as we discover each node.
 			InitAllNodes();
 			break;
@@ -2754,8 +2755,8 @@ void Driver::HandleRemoveFailedNodeRequest
 
 			Notification* notification = new Notification( Notification::Type_NodeRemoved );
 			notification->SetHomeAndNodeIds( m_homeId, m_controllerCommandNode );
-			QueueNotification( notification ); 
- 
+			QueueNotification( notification );
+
 			break;
 		}
 		case FAILED_NODE_NOT_REMOVED:
@@ -2848,7 +2849,7 @@ void Driver::HandleApplicationCommandHandlerRequest
 			if( m_controllerCallback )
 			{
 				m_controllerCallback( ControllerState_InProgress, m_controllerCallbackContext );
-			}		
+			}
 		}
 		else
 		{
@@ -3020,15 +3021,15 @@ bool Driver::HandleApplicationUpdateRequest
 
 			Notification* notification = new Notification( Notification::Type_NodeRemoved );
 			notification->SetHomeAndNodeIds( m_homeId, nodeId );
-			QueueNotification( notification ); 
+			QueueNotification( notification );
 			break;
 		}
 		case UPDATE_STATE_NEW_ID_ASSIGNED:
 		{
 			Log::Write( LogLevel_Info, nodeId, "** Network change **: ID %d was assigned to a new Z-Wave node", nodeId );
-			
+
 			// Request the node protocol info (also removes any existing node and creates a new one)
-			InitNode( nodeId );		
+			InitNode( nodeId );
 			break;
 		}
 		case UPDATE_STATE_ROUTING_PENDING:
@@ -3039,8 +3040,8 @@ bool Driver::HandleApplicationUpdateRequest
 		case UPDATE_STATE_NODE_INFO_REQ_FAILED:
 		{
 			Log::Write( LogLevel_Warning, nodeId, "WARNING: FUNC_ID_ZW_APPLICATION_UPDATE: UPDATE_STATE_NODE_INFO_REQ_FAILED received" );
-	
-			// Note: Unhelpfully, the nodeId is always zero in this message.  We have to 
+
+			// Note: Unhelpfully, the nodeId is always zero in this message.  We have to
 			// assume the message came from the last node to which we sent a request.
 			if( m_currentMsg )
 			{
@@ -3123,7 +3124,7 @@ void Driver::CommonAddNodeStatusRequestHandler
 		}
 		case ADD_NODE_STATUS_ADDING_SLAVE:
 		{
-			Log::Write( LogLevel_Info, nodeId, "ADD_NODE_STATUS_ADDING_SLAVE" );			
+			Log::Write( LogLevel_Info, nodeId, "ADD_NODE_STATUS_ADDING_SLAVE" );
 			Log::Write( LogLevel_Info, nodeId, "Adding node ID %d", _data[4] );
 			m_controllerAdded = false;
 			m_controllerCommandNode = _data[4];
@@ -3199,13 +3200,13 @@ void Driver::CommonAddNodeStatusRequestHandler
 //-----------------------------------------------------------------------------
 //	Polling Z-Wave devices
 //-----------------------------------------------------------------------------
-	
+
 //-----------------------------------------------------------------------------
 // <Driver::EnablePoll>
 // Enable polling of a value
 //-----------------------------------------------------------------------------
 bool Driver::EnablePoll
-( 
+(
 	ValueID const _valueId,
 	uint8 const _intensity
 )
@@ -3251,8 +3252,8 @@ bool Driver::EnablePoll
 			// send notification to indicate polling is enabled
 			Notification* notification = new Notification( Notification::Type_PollingEnabled );
 			notification->SetHomeAndNodeIds( m_homeId, _valueId.GetNodeId() );
-			QueueNotification( notification ); 
-			Log::Write( LogLevel_Info, nodeId, "EnablePoll for HomeID 0x%.8x, value(cc=0x%02x,in=0x%02x,id=0x%02x)--pollList has %d items", 
+			QueueNotification( notification );
+			Log::Write( LogLevel_Info, nodeId, "EnablePoll for HomeID 0x%.8x, value(cc=0x%02x,in=0x%02x,id=0x%02x)--pollList has %d items",
 				    _valueId.GetHomeId(), _valueId.GetCommandClassId(), _valueId.GetIndex(), _valueId.GetInstance(), m_pollList.size() );
 			return true;
 		}
@@ -3273,7 +3274,7 @@ bool Driver::EnablePoll
 // Disable polling of a node
 //-----------------------------------------------------------------------------
 bool Driver::DisablePoll
-( 
+(
 	ValueID const _valueId
 )
 {
@@ -3304,8 +3305,8 @@ bool Driver::DisablePoll
 				// send notification to indicate polling is disabled
 				Notification* notification = new Notification( Notification::Type_PollingDisabled );
 				notification->SetHomeAndNodeIds( m_homeId, _valueId.GetNodeId() );
-				QueueNotification( notification ); 
-				Log::Write( LogLevel_Info, nodeId, "Node%03d, DisablePoll for HomeID 0x%.8x, value(cc=0x%02x,in=0x%02x,id=0x%02x)--poll list has %d items", 
+				QueueNotification( notification );
+				Log::Write( LogLevel_Info, nodeId, "Node%03d, DisablePoll for HomeID 0x%.8x, value(cc=0x%02x,in=0x%02x,id=0x%02x)--poll list has %d items",
 					    _valueId.GetHomeId(), _valueId.GetCommandClassId(), _valueId.GetIndex(), _valueId.GetInstance(), m_pollList.size() );
 				return true;
 			}
@@ -3330,7 +3331,7 @@ bool Driver::DisablePoll
 // Check polling status of a value
 //-----------------------------------------------------------------------------
 bool Driver::isPolled
-( 
+(
 	ValueID const _valueId
 )
 {
@@ -3340,7 +3341,7 @@ bool Driver::isPolled
 	m_pollMutex->Lock();
 
 	Value* value = GetValue( _valueId );
-	if( value->GetPollIntensity() != 0 ) 
+	if( value->GetPollIntensity() != 0 )
 	{
 		bPolled = true;
 	}
@@ -3406,7 +3407,7 @@ bool Driver::isPolled
 // Set the intensity with which this value is polled
 //-----------------------------------------------------------------------------
 void Driver::SetPollIntensity
-( 
+(
 	ValueID const _valueId,
 	uint8 const _intensity
 )
@@ -3426,9 +3427,9 @@ void Driver::SetPollIntensity
 // Entry point of the thread for poll Z-Wave devices
 //-----------------------------------------------------------------------------
 void Driver::PollThreadEntryPoint
-( 
+(
 	Event* _exitEvent,
-	void* _context 
+	void* _context
 )
 {
 	Driver* driver = (Driver*)_context;
@@ -3455,12 +3456,12 @@ void Driver::PollThreadProc
 		{
 			// We only bother getting the lock if the pollList is not empty
 			m_pollMutex->Lock();
-			
+
 			// Get the next value to be polled
 			PollEntry pe = m_pollList.front();
 			m_pollList.pop_front();
 			ValueID  valueId = pe.m_id;
-			
+
 			// only execute this poll if pe.m_pollCounter == 1; otherwise decrement the counter and process the next polled value
 			if( pe.m_pollCounter != 1)
 			{
@@ -3479,7 +3480,7 @@ void Driver::PollThreadProc
 			value->Release();
 			ReleaseNodes();
 
-			// If the polling interval is for the whole poll list, calculate the time before the next poll, 
+			// If the polling interval is for the whole poll list, calculate the time before the next poll,
 			// so that all polls can take place within the user-specified interval.
 			if( !m_bIntervalBetweenPolls )
 			{
@@ -3599,7 +3600,7 @@ void Driver::InitAllNodes
 	// Notify the user that all node and value information has been deleted
 	Notification* notification = new Notification( Notification::Type_DriverReset );
 	notification->SetHomeAndNodeIds( m_homeId, 0 );
-	QueueNotification( notification ); 
+	QueueNotification( notification );
 
 	// Fetch new node data from the Z-Wave network
 	Msg* msg = new Msg( "InitAllNodes", 0xff, REQUEST, FUNC_ID_SERIAL_API_GET_INIT_DATA, false );
@@ -3611,7 +3612,7 @@ void Driver::InitAllNodes
 // Queue a node to be interrogated for its setup details
 //-----------------------------------------------------------------------------
 void Driver::InitNode
-( 
+(
 	uint8 const _nodeId
 )
 {
@@ -3623,7 +3624,7 @@ void Driver::InitNode
 		delete m_nodes[_nodeId];
 		Notification* notification = new Notification( Notification::Type_NodeRemoved );
 		notification->SetHomeAndNodeIds( m_homeId, _nodeId );
-		QueueNotification( notification ); 
+		QueueNotification( notification );
 	}
 
 	// Add the new node
@@ -3632,7 +3633,7 @@ void Driver::InitNode
 
 	Notification* notification = new Notification( Notification::Type_NodeAdded );
 	notification->SetHomeAndNodeIds( m_homeId, _nodeId );
-	QueueNotification( notification ); 
+	QueueNotification( notification );
 
 	// Request the node info
 	m_nodes[_nodeId]->SetQueryStage( Node::QueryStage_ProtocolInfo );
@@ -4100,7 +4101,7 @@ void Driver::SetNodeLocation
 // Helper to set the node level through the basic command class
 //-----------------------------------------------------------------------------
 void Driver::SetNodeLevel
-( 
+(
 	uint8 const _nodeId,
 	uint8 const _level
 )
@@ -4117,7 +4118,7 @@ void Driver::SetNodeLevel
 // Helper to set the node on through the basic command class
 //-----------------------------------------------------------------------------
 void Driver::SetNodeOn
-( 
+(
     uint8 const _nodeId
 )
 {
@@ -4133,7 +4134,7 @@ void Driver::SetNodeOn
 // Helper to set the node off through the basic command class
 //-----------------------------------------------------------------------------
 void Driver::SetNodeOff
-( 
+(
     uint8 const _nodeId
 )
 {
@@ -4197,7 +4198,7 @@ void Driver::SoftReset
 // Get the neighbour information for a node from the controller
 //-----------------------------------------------------------------------------
 void Driver::RequestNodeNeighbors
-( 
+(
 	uint8 const _nodeId,
 	uint32 const _requestFlags
 )
@@ -4221,7 +4222,7 @@ void Driver::RequestNodeNeighbors
 // Start the controller performing one of its network management functions
 //-----------------------------------------------------------------------------
 bool Driver::BeginControllerCommand
-( 
+(
 	ControllerCommand _command,
 	pfnControllerCallback_t _callback,
 	void* _context,
@@ -4296,7 +4297,7 @@ bool Driver::BeginControllerCommand
 		{
 			m_controllerCommandNode = _nodeId;
 			Log::Write( LogLevel_Info, nodeId, "Requesting whether node %d has failed", _nodeId );
-			Msg* msg = new Msg( "Has Node Failed?", 0xff, REQUEST, FUNC_ID_ZW_IS_FAILED_NODE_ID, false );		
+			Msg* msg = new Msg( "Has Node Failed?", 0xff, REQUEST, FUNC_ID_ZW_IS_FAILED_NODE_ID, false );
 			msg->Append( _nodeId );
 			SendMsg( msg, MsgQueue_Command );
 			break;
@@ -4305,7 +4306,7 @@ bool Driver::BeginControllerCommand
 		{
 			m_controllerCommandNode = _nodeId;
 			Log::Write( LogLevel_Info, nodeId, "Marking node %d as having failed", _nodeId );
-			Msg* msg = new Msg( "Mark Node As Failed", 0xff, REQUEST, FUNC_ID_ZW_REMOVE_FAILED_NODE_ID, true );		
+			Msg* msg = new Msg( "Mark Node As Failed", 0xff, REQUEST, FUNC_ID_ZW_REMOVE_FAILED_NODE_ID, true );
 			msg->Append( _nodeId );
 			SendMsg( msg, MsgQueue_Command );
 			break;
@@ -4454,7 +4455,7 @@ bool Driver::BeginControllerCommand
 #endif
 						node->m_buttonMap.erase( _arg );
 						SaveButtons();
-					
+
 						Notification* notification = new Notification( Notification::Type_DeleteButton );
 						notification->SetHomeAndNodeIds( m_homeId, m_controllerCommandNode );
 						notification->SetButtonId( _arg );
@@ -4485,7 +4486,7 @@ bool Driver::BeginControllerCommand
 // Stop the current controller function
 //-----------------------------------------------------------------------------
 bool Driver::CancelControllerCommand
-( 
+(
 )
 {
 	if( ControllerCommand_None == m_controllerCommand )
@@ -4703,7 +4704,7 @@ uint8 Driver::GetNumGroups
 // Gets the associations for a group
 //-----------------------------------------------------------------------------
 uint32 Driver::GetAssociations
-( 
+(
 	uint8 const _nodeId,
 	uint8 const _groupIdx,
 	uint8** o_associations
@@ -4724,7 +4725,7 @@ uint32 Driver::GetAssociations
 // Gets the maximum number of associations for a group
 //-----------------------------------------------------------------------------
 uint8 Driver::GetMaxAssociations
-( 
+(
 	uint8 const _nodeId,
 	uint8 const _groupIdx
 )
@@ -4744,7 +4745,7 @@ uint8 Driver::GetMaxAssociations
 // Gets the label for a particular group
 //-----------------------------------------------------------------------------
 string Driver::GetGroupLabel
-( 
+(
 	uint8 const _nodeId,
 	uint8 const _groupIdx
 )
@@ -4844,7 +4845,7 @@ bool Driver::HandleRfPowerLevelSetResponse
 	// isn't any returned response data, so just log the function call
 	Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "Received reply to FUNC_ID_ZW_R_F_POWER_LEVEL_SET" );
 
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -4876,7 +4877,7 @@ bool Driver::HandleMemoryGetByteResponse
 	// it seems to return three bytes of data, so print them out
 	Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "Received reply to FUNC_ID_ZW_MEMORY_GET_BYTE, returned data: 0x%02hx 0x%02hx 0x%02hx", _data[0], _data[1], _data[2] );
 
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -4891,7 +4892,7 @@ bool Driver::HandleReadMemoryResponse
 	// the meaning of this command and its response is currently unclear
 	bool res = true;
 	Log::Write( LogLevel_Info, GetNodeNumber( m_currentMsg ), "Received reply to FUNC_ID_MEMORY_GET_BYTE" );
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -4974,7 +4975,7 @@ uint32 Driver::GetVirtualNeighbors
 // Get the virtual neighbour information from the controller
 //-----------------------------------------------------------------------------
 void Driver::RequestVirtualNeighbors
-( 
+(
 	MsgQueue const _queue
 )
 {
@@ -5024,7 +5025,7 @@ void Driver::SendSlaveLearnModeOff
 // Save button info into file.
 //-----------------------------------------------------------------------------
 void Driver::SaveButtons
-( 
+(
 )
 {
 	char str[16];
@@ -5084,7 +5085,7 @@ void Driver::SaveButtons
 // Read button info per node from file.
 //-----------------------------------------------------------------------------
 void Driver::ReadButtons
-( 
+(
 	uint8 const _nodeId
 )
 {
@@ -5096,7 +5097,7 @@ void Driver::ReadButtons
 	// Load the XML document that contains the driver configuration
 	string userPath;
 	Options::Get()->GetOptionAsString( "UserPath", &userPath );
-	
+
 	string filename =  userPath + "zwbutton.xml";
 
 	TiXmlDocument doc;
@@ -5210,7 +5211,7 @@ bool Driver::HandleSetSlaveLearnModeResponse
 	{
 		m_controllerCallback( state, m_controllerCallbackContext );
 	}
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -5317,7 +5318,7 @@ bool Driver::HandleSendSlaveNodeInfoResponse
 	{
 		m_controllerCallback( state, m_controllerCallbackContext );
 	}
-	return res; 
+	return res;
 }
 
 //-----------------------------------------------------------------------------

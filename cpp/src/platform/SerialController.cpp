@@ -1,3 +1,4 @@
+// vim: set noexpandtab tabstop=4 nolist :
 //-----------------------------------------------------------------------------
 //
 //	SerialController.h
@@ -26,7 +27,7 @@
 //-----------------------------------------------------------------------------
 
 #include "Event.h"
-#include "Thread.h" 
+#include "Thread.h"
 #include "Msg.h"
 #include "SerialController.h"
 #include "SerialControllerImpl.h"	// Platform-specific implementation of a serial port
@@ -34,6 +35,7 @@
 
 using namespace OpenZWave;
 
+#include <iostream>
 
 //-----------------------------------------------------------------------------
 //	<SerialController::SerialController>
@@ -63,7 +65,7 @@ SerialController::~SerialController
 
 //-----------------------------------------------------------------------------
 //  <SerialController::SetBaud>
-//  Set the serial port baud rate.  
+//  Set the serial port baud rate.
 //  The serial port must be closed for the setting to be accepted.
 //-----------------------------------------------------------------------------
 bool SerialController::SetBaud
@@ -132,7 +134,7 @@ bool SerialController::Open
 		return false;
 	}
 
-	m_serialControllerName = _serialControllerName; 
+	m_serialControllerName = _serialControllerName;
 	m_bOpen = m_pImpl->Open();
 	return m_bOpen;
 }

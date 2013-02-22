@@ -1,3 +1,4 @@
+// vim: set noexpandtab nolist tabstop=4 foldmethod=syntax :
 //-----------------------------------------------------------------------------
 //
 //	Options.h
@@ -48,7 +49,7 @@ namespace OpenZWave
 	 * each controller in the Z-Wave network, to avoid querying them for their entire
 	 * state every time the application starts up.
 	 * The second source of program options is a string, which will normally be the
-	 * command line used to launch the application.  
+	 * command line used to launch the application.
 	 * In this way, common options can be specified in the XML, but over-ridden if
 	 * necessary by the command line.
 	 * The Options process is as follows:
@@ -75,7 +76,7 @@ namespace OpenZWave
 		};
 
    		/**
-		 * Creates an object to manage the program options.  
+		 * Creates an object to manage the program options.
 		 * \param _configPath a string containing the path to the OpenZWave library config
 		 * folder, which contains XML descriptions of Z-Wave manufacturers and products.
 		 * \param _userPath a string containing the path to the application's user data
@@ -92,7 +93,7 @@ namespace OpenZWave
 		 *   <Option name="ignore" value="COMMAND_CLASS_BASIC" />
 		 *   <Option name="ignore" value="COMMAND_CLASS_VERSION" />
 		 * </Options>
-		 * \endcode  
+		 * \endcode
 		 * \param _commandLine a string containing the program's command line options.
 		 * Command line options are parsed after the options.xml file, and so take precedence.
 		 * Options are identified by a leading -- (two minus signs). The following items
@@ -111,7 +112,7 @@ namespace OpenZWave
 		 * but this must not be done until after the Manager object has been
 		 * destroyed.
 		 * \param _options Pointer to the Options object to be destroyed.
-		 * \return true if the Options object was destroyed.  If the manager 
+		 * \return true if the Options object was destroyed.  If the manager
 		 * object still exists, this call will return false.
 		 * \see Create, Get
 		 */
@@ -119,7 +120,7 @@ namespace OpenZWave
 
 		/**
 		 * Gets a pointer to the Options singleton object.
-		 * \return a pointer to the Options singleton object. 
+		 * \return a pointer to the Options singleton object.
 		 * \see Create, Destroy
 		 */
 		static Options* Get(){ return s_instance; }
@@ -171,7 +172,7 @@ namespace OpenZWave
 		 * Get the value of a boolean option.
 		 * \param _name the name of the option.  Option names are case insensitive.
 		 * \param o_value a pointer to the item that will be filled with the option value.
-		 * \return true if the option value was fetched successfully, false if the 
+		 * \return true if the option value was fetched successfully, false if the
 		 * option does not exist, or does not contain a boolean value
 		 * \see AddOptionBool, GetOptionType
 		 */
@@ -181,7 +182,7 @@ namespace OpenZWave
 		 * Get the value of an integer option.
 		 * \param _name the name of the option.  Option names are case insensitive.
 		 * \param o_value a pointer to the item that will be filled with the option value.
-		 * \return true if the option value was fetched successfully, false if the 
+		 * \return true if the option value was fetched successfully, false if the
 		 * option does not exist, or does not contain an integer value
 		 * \see AddOptionInt, GetOptionType
 		 */
@@ -191,9 +192,9 @@ namespace OpenZWave
 		 * Get the value of a string option.
 		 * \param _name the name of the option.  Option names are case insensitive.
 		 * \param o_value a pointer to the item that will be filled with the option value.
-		 * \return true if the option value was fetched successfully, false if the 
+		 * \return true if the option value was fetched successfully, false if the
 		 * option does not exist, or does not contain a string value
-		 * \see AddOptionString, GetOptionType 
+		 * \see AddOptionString, GetOptionType
 		 */
 		bool GetOptionAsString( string const& _name, string* o_value );
 

@@ -1,3 +1,4 @@
+// vim: set noexpandtab tabstop=4 nolist :
 //-----------------------------------------------------------------------------
 //
 //	Driver.h
@@ -48,7 +49,7 @@ namespace OpenZWave
 	class ControllerReplication;
 	class Notification;
 
-	/** \brief The Driver class handles communication between OpenZWave 
+	/** \brief The Driver class handles communication between OpenZWave
 	 *  and a device attached via a serial port (typically a controller).
 	 */
 	class Driver
@@ -81,7 +82,7 @@ namespace OpenZWave
 	// Construction / Destruction
 	//-----------------------------------------------------------------------------
 	private:
-		/** 
+		/**
 		 *  Creates threads, events and initializes member variables and the node array.
 		 */
 		Driver( string const& _controllerPath, ControllerInterface const& _interface );
@@ -100,9 +101,9 @@ namespace OpenZWave
 		 */
 		static void DriverThreadEntryPoint( Event* _exitEvent, void* _context );
 		/**
-		 *  ThreadProc for driverThread.  This is where all the "action" takes place.  
+		 *  ThreadProc for driverThread.  This is where all the "action" takes place.
 		 *  <p>
-		 *  First, the thread is initialized by calling Init().  If Init() fails, it will be retried 
+		 *  First, the thread is initialized by calling Init().  If Init() fails, it will be retried
 		 *  every 5 seconds for the first two minutes and every 30 seconds thereafter.
 		 *  <p>
 		 *  After the thread is successfully initialized, the thread enters a loop with the
@@ -119,7 +120,7 @@ namespace OpenZWave
 		 */
 		void DriverThreadProc( Event* _exitEvent );
 		/**
-		 *  Initialize the controller.  Open the specified serial port, start the serialThread 
+		 *  Initialize the controller.  Open the specified serial port, start the serialThread
 		 *  and pollThread, then send a NAK to the device [presumably to flush it].
 		 *  <p>
 		 *  Then queue the commands to retrieve the Z-Wave interface:
@@ -138,7 +139,7 @@ namespace OpenZWave
 		bool					m_init;					/**< Set to true once the driver has been initialised */
 		bool					m_awakeNodesQueried;	/**< Set to true once the driver has polled all awake nodes */
 		bool					m_allNodesQueried;		/**< Set to true once the driver has polled all nodes */
-		bool					m_notifytransactions; 
+		bool					m_notifytransactions;
 		TimeStamp				m_startTime;			/**< Time this driver started (for log report purposes) */
 
 	//-----------------------------------------------------------------------------
@@ -193,11 +194,11 @@ namespace OpenZWave
 			{
 				count += m_msgQueue[i].size();
 			}
-			return count; 
+			return count;
 		}
 
 		/**
-		 *  A version of GetNode that does not have the protective "lock" and "release" requirement.  
+		 *  A version of GetNode that does not have the protective "lock" and "release" requirement.
 		 *  This function can be used within driverThread, which "knows" that the node will not be
 		 *  changed or deleted while it is being used.
 		 *  \param _nodeId The nodeId (index into the node array) identifying the node to be returned
@@ -229,7 +230,7 @@ namespace OpenZWave
 		string					m_controllerPath;							// name or path used to open the controller hardware.
 		Controller*				m_controller;								// Handles communications with the controller hardware.
 		uint32					m_homeId;									// Home ID of the Z-Wave controller.  Not valid until the DriverReady notification has been received.
-		
+
 		string					m_libraryVersion;							// Verison of the Z-Wave Library used by the controller.
 		string					m_libraryTypeName;							// Name describing the library type.
 		uint8					m_libraryType;								// Type of library used by the controller.
@@ -298,7 +299,7 @@ namespace OpenZWave
 		//		priority send queue, because the controller command processes are not
 		//		permitted to be interupted by other requests.
 		//
-		// 2)	The wakeup queue.  This holds messages that have been held for a 
+		// 2)	The wakeup queue.  This holds messages that have been held for a
 		//		sleeping device that has now woken up.  These gwt a high priority
 		//		because such devices do not stay awake for very long.
 		//
@@ -318,7 +319,7 @@ namespace OpenZWave
 			MsgQueueCmd_SendMsg = 0,
 			MsgQueueCmd_QueryStageComplete
 		};
-		
+
 		class MsgQueueItem
 		{
 		public:
@@ -373,7 +374,7 @@ namespace OpenZWave
 		 *  The response message contains a bitmap identifying which of the 232 possible nodes
 		 *  in the network are actually present.  These bitmap values are compared with the
 		 *  node map (read in from zwcfg_0x[homeid].xml) to see if the node has already been registered
-		 *  by the OpenZWave library.  If it has (the log will show it as "Known") and this is 
+		 *  by the OpenZWave library.  If it has (the log will show it as "Known") and this is
 		 *  the first time this message was sent (m_init is false), then AddNodeQuery() is called
 		 *  to retrieve its current state.  If this is a "New" node to OpenZWave, then InitNode()
 		 *  is called.
@@ -470,12 +471,12 @@ namespace OpenZWave
 		 *  stages--Node::QueryStage_None).  This function will send Notification::Type_NodeAdded
 		 *  and Notification::Type_NodeRemoved messages to identify these modifications.
 		 *  \param _nodeId The node ID of the node to create and query.
-		 *  \see Notification::Type_NodeAdded, Notification::Type_NodeRemoved, Node::QueryStage_None, 
+		 *  \see Notification::Type_NodeAdded, Notification::Type_NodeRemoved, Node::QueryStage_None,
 		 */
 		void InitNode( uint8 const _nodeId );
 
 		void InitAllNodes();												// Delete all nodes and fetch the data from the Z-Wave network again.
-		
+
 		bool IsNodeListeningDevice( uint8 const _nodeId );
 		bool IsNodeFrequentListeningDevice( uint8 const _nodeId );
 		bool IsNodeBeamingDevice( uint8 const _nodeId );
@@ -525,8 +526,8 @@ namespace OpenZWave
 	//-----------------------------------------------------------------------------
 	// Controller commands
 	//-----------------------------------------------------------------------------
-	public:	
-		/** 
+	public:
+		/**
 		 * Controller Commands.
 		 * Commands to be used with the BeginControllerCommand method.
 		 * \see Manager::BeginControllerCommand
@@ -552,7 +553,7 @@ namespace OpenZWave
 			ControllerCommand_DeleteButton					/**< Delete id that tracks handheld button presses */
 		};
 
-		/** 
+		/**
 		 * Controller States.
 		 * States reported via the callback handler passed into the BeginControllerCommand method.
 		 * \see Manager::BeginControllerCommand
@@ -619,8 +620,8 @@ namespace OpenZWave
 	//-----------------------------------------------------------------------------
 	// Virtual Node commands
 	//-----------------------------------------------------------------------------
-	public:	
-		/** 
+	public:
+		/**
 		 * Virtual Node Commands.
 		 * Commands to be used with virtual nodes.
 		 */
@@ -639,7 +640,7 @@ namespace OpenZWave
 	//-----------------------------------------------------------------------------
 	// SwitchAll
 	//-----------------------------------------------------------------------------
-	private:		
+	private:
 		// The public interface is provided via the wrappers in the Manager class
 		void SwitchAllOn();
 		void SwitchAllOff();
@@ -647,7 +648,7 @@ namespace OpenZWave
 	//-----------------------------------------------------------------------------
 	// Configuration Parameters	(wrappers for the Node methods)
 	//-----------------------------------------------------------------------------
-	private:		
+	private:
 		// The public interface is provided via the wrappers in the Manager class
 		bool SetConfigParam( uint8 const _nodeId, uint8 const _param, int32 _value, uint8 const _size );
 		void RequestConfigParam( uint8 const _nodeId, uint8 const _param );
@@ -655,7 +656,7 @@ namespace OpenZWave
 	//-----------------------------------------------------------------------------
 	// Groups (wrappers for the Node methods)
 	//-----------------------------------------------------------------------------
-	private:		
+	private:
 		// The public interface is provided via the wrappers in the Manager class
 		uint8 GetNumGroups( uint8 const _nodeId );
 		uint32 GetAssociations( uint8 const _nodeId, uint8 const _groupIdx, uint8** o_associations );

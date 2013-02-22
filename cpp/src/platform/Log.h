@@ -1,3 +1,4 @@
+// vim: set noexpandtab nolist tabstop=4 foldmethod=syntax :
 //-----------------------------------------------------------------------------
 //
 //	Log.h

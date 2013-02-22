@@ -1,3 +1,4 @@
+// vim: set noexpandtab tabstop=4 nolist :
 //-----------------------------------------------------------------------------
 //
 // SerialControllerImpl.cpp
@@ -26,6 +27,7 @@
 //
 //-----------------------------------------------------------------------------
 #include <unistd.h>
+#include <string.h>
 #include "Defs.h"
 #include "Thread.h"
 #include "Event.h"
@@ -66,10 +68,10 @@ SerialControllerImpl::~SerialControllerImpl
 
 //-----------------------------------------------------------------------------
 // <SerialControllerImpl::Open>
-// Open the serial port 
+// Open the serial port
 //-----------------------------------------------------------------------------
 bool SerialControllerImpl::Open
-( 
+(
 )
 {
 	// Try to init the serial port
@@ -89,10 +91,10 @@ bool SerialControllerImpl::Open
 
 //-----------------------------------------------------------------------------
 // <SerialControllerImpl::Close>
-// Close the serial port 
+// Close the serial port
 //-----------------------------------------------------------------------------
 void SerialControllerImpl::Close
-( 
+(
 )
 {
 	if( m_pThread )
@@ -130,7 +132,7 @@ void SerialControllerImpl::ReadThreadProc
 (
 	Event* _exitEvent
 )
-{  
+{
 	uint32 attempts = 0;
 	while( true )
 	{
@@ -146,7 +148,7 @@ void SerialControllerImpl::ReadThreadProc
 			attempts = 0;
 		}
 
-		if( attempts < 25 )		
+		if( attempts < 25 )
 		{
 			// Retry every 5 seconds for the first two minutes...
 			if( Wait::Single( _exitEvent, 5000 ) >= 0 )
@@ -177,24 +179,24 @@ bool SerialControllerImpl::Init
 (
 	uint32 const _attempts
 )
-{  
+{
 
 	string device = m_owner->m_serialControllerName;
-	
+
 	Log::Write( LogLevel_Info, "Trying to open serial port %s (attempt %d)", device.c_str(), _attempts );
-	
+
 	m_hSerialController = open( device.c_str(), O_RDWR | O_NOCTTY, 0 );
 
 	if( -1 == m_hSerialController )
 	{
 		//Error
-		Log::Write( LogLevel_Error, "ERROR: Cannot open serial port %s. Error code %d", device.c_str(), errno );
+		Log::Write( LogLevel_Error, "ERROR: Cannot open serial port %s. %s.", device.c_str(), strerror(errno) );
 		goto SerialOpenFailure;
 	}
 
 	if( flock( m_hSerialController, LOCK_EX | LOCK_NB) == -1 )
 	{
-		Log::Write( LogLevel_Error, "ERROR: Cannot get exclusive lock for serial port %s. Error code %d", device.c_str(), errno );
+		Log::Write( LogLevel_Error, "ERROR: Cannot get exclusive lock for serial port %s. %s.", device.c_str(), strerror(errno) );
 	}
 
 	int bits;
