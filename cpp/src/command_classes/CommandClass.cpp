@@ -110,13 +110,13 @@ Value* CommandClass::GetValue
 // Instances as set by the MultiInstance V1 command class
 //-----------------------------------------------------------------------------
 void CommandClass::SetInstances
-( 
+(
 	uint8 const _instances
 )
 {
 	// Ensure we have a set of reported variables for each new instance
 	if( !m_afterMark )
-	{	
+	{
 		for( uint8 i=0; i<_instances; ++i )
 		{
 			SetInstance( i+1 );
@@ -129,7 +129,7 @@ void CommandClass::SetInstances
 // Instances as set by the MultiChannel (i.e. MultiInstance V2) command class
 //-----------------------------------------------------------------------------
 void CommandClass::SetInstance
-( 
+(
 	uint8 const _endPoint
 )
 {
@@ -148,7 +148,7 @@ void CommandClass::SetInstance
 // Read the saved command class data
 //-----------------------------------------------------------------------------
 void CommandClass::ReadXML
-( 
+(
 	TiXmlElement const* _ccElement
 )
 {
@@ -223,7 +223,7 @@ void CommandClass::ReadXML
 // Save the static node configuration data
 //-----------------------------------------------------------------------------
 void CommandClass::WriteXML
-( 
+(
 	TiXmlElement* _ccElement
 )
 {
@@ -339,7 +339,7 @@ string CommandClass::ExtractValue
 	if( precision == 0 )
 	{
 		// The precision is zero, so we can just print the number directly into the string.
-		snprintf( numBuf, 12, "%d", (signed long)value );
+		snprintf( numBuf, 12, "%ld", (signed long)value );
 		res = numBuf;
 	}
 	else
@@ -347,15 +347,15 @@ string CommandClass::ExtractValue
 		// We'll need to insert a decimal point and include any necessary leading zeros.
 
 		// Fill the buffer with the value padded with leading zeros.
-		snprintf( numBuf, 12, "%011d", (signed long)value );
+		snprintf( numBuf, 12, "%011ld", (signed long)value );
 
 		// Calculate the position of the decimal point in the buffer
 		int32 decimal = 10-precision;
 
 		// Shift the characters to make space for the decimal point.
 		// We don't worry about overwriting any minus sign since that is
-		// already written into the res string. While we're shifting, we 
-		// also look for the real starting position of the number so we 
+		// already written into the res string. While we're shifting, we
+		// also look for the real starting position of the number so we
 		// can copy it into the res string later.
 		int32 start = -1;
 		for( int32 i=0; i<decimal; ++i )
@@ -434,7 +434,7 @@ int32 CommandClass::ValueToInteger
 {
 	int32 val;
 	uint8 precision;
-	
+
 	// Find the decimal point
 	size_t pos = _value.find_first_of( "." );
 	if( pos == string::npos )
@@ -503,10 +503,10 @@ int32 CommandClass::ValueToInteger
 // The static data for this command class has been read from the device
 //-----------------------------------------------------------------------------
 void CommandClass::ClearStaticRequest
-( 
+(
 	uint8 _request
 )
-{ 
+{
 	m_staticRequests &= ~_request;
 }
 

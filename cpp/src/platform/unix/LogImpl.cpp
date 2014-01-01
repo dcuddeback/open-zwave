@@ -78,10 +78,10 @@ LogImpl::~LogImpl
 //	Write to the log
 //-----------------------------------------------------------------------------
 void LogImpl::Write
-( 
+(
 	LogLevel _logLevel,
 	uint8 const _nodeId,
-	char const* _format, 
+	char const* _format,
 	va_list _args
 )
 {
@@ -163,7 +163,7 @@ void LogImpl::Write
 //	Write to the log queue
 //-----------------------------------------------------------------------------
 void LogImpl::Queue
-( 
+(
 	char const* _buffer
 )
 {
@@ -182,7 +182,7 @@ void LogImpl::Queue
 //	Dump the LogQueue to output device
 //-----------------------------------------------------------------------------
 void LogImpl::QueueDump
-( 
+(
 )
 {
 	Log::Write( LogLevel_Always, "" );
@@ -206,7 +206,7 @@ void LogImpl::QueueDump
 //	Clear the LogQueue
 //-----------------------------------------------------------------------------
 void LogImpl::QueueClear
-( 
+(
 )
 {
 	m_logQueue.clear();
@@ -233,7 +233,7 @@ void LogImpl::SetLoggingState
 //	Generate a string with formatted current time
 //-----------------------------------------------------------------------------
 string LogImpl::GetTimeStampString
-( 
+(
 )
 {
 	// Get a timestamp
@@ -244,7 +244,7 @@ string LogImpl::GetTimeStampString
 
 	// create a time stamp string for the log message
 	char buf[100];
-	snprintf( buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d:%03d ", 
+	snprintf( buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d:%03ld ",
 		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
 		  tm->tm_hour, tm->tm_min, tm->tm_sec, tv.tv_usec / 1000 );
 	string str = buf;
@@ -271,7 +271,7 @@ string LogImpl::GetNodeString
 		}
 		else
 		{
-			char buf[20];  
+			char buf[20];
 			snprintf( buf, sizeof(buf), "Node%03d, ", _nodeId );
 			return buf;
 		}
@@ -282,11 +282,11 @@ string LogImpl::GetNodeString
 //	Generate a string with formatted thread id
 //-----------------------------------------------------------------------------
 string LogImpl::GetThreadId
-( 
+(
 )
 {
 	char buf[20];
-	snprintf( buf, sizeof(buf), "%08x ", pthread_self() );
+	snprintf( buf, sizeof(buf), "%08lx ", pthread_self() );
 	string str = buf;
 	return str;
 }
@@ -296,7 +296,7 @@ string LogImpl::GetThreadId
 //	Provide a new log file name (applicable to future writes)
 //-----------------------------------------------------------------------------
 void LogImpl::SetLogFileName
-( 
+(
 	string _filename
 )
 {

@@ -49,7 +49,7 @@ EventImpl::EventImpl
 	pthread_mutexattr_settype( &ma, PTHREAD_MUTEX_ERRORCHECK );
 	pthread_mutex_init( &m_lock, &ma );
 	pthread_mutexattr_destroy( &ma );
-	
+
 	pthread_condattr_t ca;
 	pthread_condattr_init( &ca );
 	pthread_condattr_setpshared( &ca, PTHREAD_PROCESS_PRIVATE );
@@ -89,7 +89,7 @@ void EventImpl::Set
 		err = pthread_cond_broadcast( &m_condition );
 		if( err != 0 )
 		{
-			fprintf(stderr,  "EventImpl::Set cond broadcast error %d (%s)\n", errno, err );
+			fprintf(stderr,  "EventImpl::Set cond broadcast error %d (%d)\n", errno, err );
 			assert( 0 );
 		}
 	}
@@ -114,7 +114,7 @@ void EventImpl::Set
 	{
 		fprintf(stderr,  "EventImpl::Set unlock error %d (%d)\n", errno, err );
 		assert( 0 );
-	} 
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -188,7 +188,7 @@ bool EventImpl::Wait
 			struct timespec abstime;
 
 			gettimeofday(&now, NULL);
-            
+
 			abstime.tv_sec = now.tv_sec + (_timeout / 1000);
 
 			// Now add the remainder of our timeout to the microseconds part of 'now'
@@ -201,9 +201,9 @@ bool EventImpl::Wait
 				now.tv_usec -= (1000 * 1000);
 				abstime.tv_sec++;
 			}
-            
+
 			abstime.tv_nsec = now.tv_usec * 1000;
-            
+
 			while( !m_isSignaled )
 			{
 				int oldstate;
